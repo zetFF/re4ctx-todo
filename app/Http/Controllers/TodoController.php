@@ -62,9 +62,14 @@ class TodoController extends Controller
 
     public function destroy(Todo $todo)
     {
+        // Optional: Add authorization check
+        if ($todo->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         $todo->delete();
         
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Task deleted successfully');
     }
 
     public function complete(Todo $todo)
@@ -75,6 +80,23 @@ class TodoController extends Controller
         ]);
 
         return back();
+    }
+
+    public function update(Request $request, Todo $todo)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'priority' => 'required|in:low,medium,high',
+            'category_id' => 'nullable|exists:categories,id',
+            'due_date' => 'required|date',
+            'due_time' => 'required',
+            'reminder' => 'boolean',
+        ]);
+
+        $todo->update($validated);
+
+        return redirect()->back()->with('success', 'Task updated successfully');
     }
 
     // Tambahkan method lain untuk CRUD

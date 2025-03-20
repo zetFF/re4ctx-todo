@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/todos/{todo}/complete', [TodoController::class, 'complete'])
         ->name('todos.complete')
         ->middleware('auth');
+    Route::put('/todos/{todo}', [TodoController::class, 'update'])->name('todos.update');
 });
 
 Route::middleware('auth')->group(function () {
