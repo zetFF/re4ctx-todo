@@ -240,7 +240,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 )}
 
                 <main>
-                    <div className="mx-auto">{children}</div>
+                    <div className="mx-auto bg-white">{children}</div>
                 </main>
             </div>
         </div>

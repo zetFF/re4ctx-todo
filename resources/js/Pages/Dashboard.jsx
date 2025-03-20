@@ -29,6 +29,11 @@ import {
     Folder,
     Circle,
     MoreHorizontal,
+    ChevronLeft,
+    ChevronRight,
+    ClipboardList,
+    Timer,
+    ChevronDown,
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -92,6 +97,9 @@ export default function Dashboard({ auth, todos, categories, stats }) {
     const [todoToDelete, setTodoToDelete] = useState(null);
     const [selectedTodo, setSelectedTodo] = useState(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10; // Jumlah item per halaman
+    const [showStats, setShowStats] = useState(true);
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         title: "",
@@ -934,28 +942,43 @@ export default function Dashboard({ auth, todos, categories, stats }) {
         </div>
     );
 
+    const totalPages = Math.ceil(filteredTodos.length / itemsPerPage);
+
+    const getCurrentTodos = () => {
+        const indexOfLastTodo = currentPage * itemsPerPage;
+        const indexOfFirstTodo = indexOfLastTodo - itemsPerPage;
+        return filteredTodos.slice(indexOfFirstTodo, indexOfLastTodo);
+    };
+
     const TodoTable = () => (
-        <div className="rounded-lg border shadow-sm overflow-hidden">
+        <div className="rounded-lg border shadow-sm overflow-x-auto">
             <Table>
                 <TableHeader>
-                    <TableRow className="bg-gray-50">
+                    <TableRow className="bg-white">
                         <TableHead className="w-[5%]">Status</TableHead>
                         <TableHead className="w-[35%]">Task</TableHead>
-                        <TableHead className="w-[10%]">Priority</TableHead>
-                        <TableHead className="w-[15%]">Category</TableHead>
-                        <TableHead className="w-[20%]">Due Date</TableHead>
+                        <TableHead className="hidden md:table-cell w-[10%]">
+                            Priority
+                        </TableHead>
+                        <TableHead className="hidden md:table-cell w-[15%]">
+                            Category
+                        </TableHead>
+                        <TableHead className="hidden md:table-cell w-[20%]">
+                            Due Date
+                        </TableHead>
                         <TableHead className="w-[15%] text-right">
                             Actions
                         </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredTodos.map((todo) => (
+                    {getCurrentTodos().map((todo, index) => (
                         <TableRow
                             key={todo.id}
                             className={cn(
-                                "group hover:bg-gray-50 transition-colors",
-                                todo.status === "completed" && "bg-gray-50/50"
+                                "group hover:bg-white transition-colors",
+                                todo.status === "completed" && "bg-gray-50/50",
+                                "border-b last:border-b-0"
                             )}
                         >
                             <TableCell>
@@ -987,12 +1010,54 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                                     <span className="text-sm text-gray-500 line-clamp-1">
                                         {todo.description}
                                     </span>
+                                    {/* Mobile-only badges */}
+                                    <div className="flex flex-wrap gap-2 mt-2 md:hidden">
+                                        <span
+                                            className={cn(
+                                                "px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
+                                                getPriorityColor(todo.priority)
+                                                    .bg,
+                                                getPriorityColor(todo.priority)
+                                                    .text
+                                            )}
+                                        >
+                                            {todo.priority}
+                                        </span>
+                                        {todo.category && (
+                                            <span
+                                                className={cn(
+                                                    "px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
+                                                    getCategoryColor(
+                                                        todo.category_id
+                                                    ).bg,
+                                                    getCategoryColor(
+                                                        todo.category_id
+                                                    ).text
+                                                )}
+                                            >
+                                                {
+                                                    categories.find(
+                                                        (c) =>
+                                                            c.id ===
+                                                            todo.category_id
+                                                    )?.name
+                                                }
+                                            </span>
+                                        )}
+                                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                                            <Calendar className="h-3 w-3" />
+                                            {format(
+                                                new Date(todo.due_date),
+                                                "MMM dd, yyyy"
+                                            )}
+                                        </span>
+                                    </div>
                                 </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden md:table-cell">
                                 <span
                                     className={cn(
-                                        "px-2.5 py-0.5 rounded-full text-xs font-medium inline-flex items-center capitalize",
+                                        "px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
                                         getPriorityColor(todo.priority).bg,
                                         getPriorityColor(todo.priority).text
                                     )}
@@ -1000,11 +1065,11 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                                     {todo.priority}
                                 </span>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden md:table-cell">
                                 {todo.category && (
                                     <span
                                         className={cn(
-                                            "px-2.5 py-0.5 rounded-full text-xs font-medium inline-flex items-center capitalize",
+                                            "px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
                                             getCategoryColor(todo.category_id)
                                                 .bg,
                                             getCategoryColor(todo.category_id)
@@ -1019,7 +1084,7 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                                     </span>
                                 )}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden md:table-cell">
                                 <div className="flex items-center gap-2">
                                     <Calendar className="h-4 w-4 text-gray-500" />
                                     <span className="text-sm">
@@ -1030,8 +1095,9 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                                     </span>
                                 </div>
                             </TableCell>
-                            <TableCell>
-                                <div className="flex justify-end gap-2">
+                            <TableCell className="text-right">
+                                {/* Desktop Actions */}
+                                <div className="hidden md:flex justify-end gap-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -1051,11 +1117,104 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                                         Delete
                                     </Button>
                                 </div>
+
+                                {/* Mobile Actions */}
+                                <div className="md:hidden">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8"
+                                            >
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            align="end"
+                                            className="w-48"
+                                        >
+                                            <DropdownMenuItem
+                                                onClick={() => handleEdit(todo)}
+                                                className="cursor-pointer"
+                                            >
+                                                <Pencil className="h-4 w-4 mr-2" />
+                                                Edit Task
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={() =>
+                                                    handleDelete(todo)
+                                                }
+                                                className="cursor-pointer text-red-600 focus:text-red-600"
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                Delete Task
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between px-4 py-4 border-t">
+                <div className="flex-1 text-sm text-gray-500">
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                    {Math.min(currentPage * itemsPerPage, filteredTodos.length)}{" "}
+                    of {filteredTodos.length} results
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                            setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                        className="h-8 w-8 p-0"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="flex items-center gap-1">
+                        {Array.from(
+                            { length: totalPages },
+                            (_, i) => i + 1
+                        ).map((page) => (
+                            <Button
+                                key={page}
+                                variant={
+                                    currentPage === page ? "default" : "outline"
+                                }
+                                size="sm"
+                                onClick={() => setCurrentPage(page)}
+                                className={cn(
+                                    "h-8 w-8 p-0",
+                                    currentPage === page &&
+                                        "bg-primary text-primary-foreground"
+                                )}
+                            >
+                                {page}
+                            </Button>
+                        ))}
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                            setCurrentPage((prev) =>
+                                Math.min(prev + 1, totalPages)
+                            )
+                        }
+                        disabled={currentPage === totalPages}
+                        className="h-8 w-8 p-0"
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
         </div>
     );
 
@@ -1140,80 +1299,317 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-                        <Card className="col-span-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-xs md:text-sm font-medium">
-                                    Total Tasks
-                                </CardTitle>
-                                <Loader2 className="w-4 h-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-lg md:text-2xl font-bold">
-                                    {stats.total}
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowStats(!showStats)}
+                                className="flex items-center gap-2"
+                            >
+                                {showStats ? (
+                                    <ChevronDown className="h-4 w-4 transition-transform" />
+                                ) : (
+                                    <ChevronRight className="h-4 w-4 transition-transform" />
+                                )}
+                                <span className="font-medium">
+                                    Statistics Overview
+                                </span>
+                            </Button>
+                            {!showStats && (
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    <span className="flex items-center gap-1">
+                                        <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                        Total: {stats.total}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <div className="h-2 w-2 rounded-full bg-green-500" />
+                                        Done: {stats.completed}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                                        Pending: {stats.pending}
+                                    </span>
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                    All tasks in your list
-                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div
+                        className={cn(
+                            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-300",
+                            showStats
+                                ? "opacity-100 max-h-[500px] mb-96 lg:mb-5"
+                                : "opacity-0 max-h-0 overflow-hidden"
+                        )}
+                    >
+                        {/* Total Tasks Card */}
+                        <Card className="group hover:shadow-lg  transition-all duration-300 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-16 -translate-y-16">
+                                <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all duration-300" />
+                            </div>
+                            <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-sm font-medium">
+                                        Total Tasks
+                                    </CardTitle>
+                                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 group-hover:from-blue-100 group-hover:to-blue-200 transition-all duration-300">
+                                        <ClipboardList className="w-4 h-4 text-blue-600" />
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="text-3xl font-bold tracking-tight">
+                                            {stats.total}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                            All tasks in your list
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                        <div className="text-sm font-medium text-green-600">
+                                            +{stats.newTasks || 0}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            vs last week
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-xs">
+                                        <span className="font-medium">
+                                            Completion Rate
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            {Math.round(
+                                                (stats.completed /
+                                                    stats.total) *
+                                                    100
+                                            )}
+                                            %
+                                        </span>
+                                    </div>
+                                    <div className="h-2 rounded-full bg-gradient-to-r from-blue-100 to-blue-50">
+                                        <div
+                                            className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-500"
+                                            style={{
+                                                width: `${
+                                                    (stats.completed /
+                                                        stats.total) *
+                                                    100
+                                                }%`,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
 
-                        <Card className="col-span-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-xs md:text-sm font-medium">
-                                    Completed
-                                </CardTitle>
-                                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-lg md:text-2xl font-bold text-green-500">
-                                    {stats.completed}
+                        {/* Completed Tasks Card */}
+                        <Card className="group hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-16 -translate-y-16">
+                                <div className="absolute inset-0 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-all duration-300" />
+                            </div>
+                            <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-sm font-medium">
+                                        Completed Tasks
+                                    </CardTitle>
+                                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-green-50 to-green-100 group-hover:from-green-100 group-hover:to-green-200 transition-all duration-300">
+                                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                    </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Tasks completed
-                                </p>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="text-3xl font-bold tracking-tight text-green-600">
+                                            {stats.completed}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                            Tasks completed
+                                        </p>
+                                    </div>
+                                    <div className="h-[48px] w-[100px]">
+                                        {/* Mini bar chart could go here */}
+                                        <div className="flex items-end justify-between h-full gap-1">
+                                            {[...Array(7)].map((_, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="w-2 bg-green-100 rounded-full"
+                                                    style={{
+                                                        height: `${
+                                                            Math.random() * 100
+                                                        }%`,
+                                                    }}
+                                                >
+                                                    <div
+                                                        className="w-full bg-green-500 rounded-full transition-all duration-500"
+                                                        style={{
+                                                            height: `${
+                                                                Math.random() *
+                                                                100
+                                                            }%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4 pt-2 border-t">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-2 w-2 rounded-full bg-green-500" />
+                                        <span className="text-xs">
+                                            Today: {stats.completedToday || 0}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-2 w-2 rounded-full bg-green-200" />
+                                        <span className="text-xs">
+                                            Week: {stats.completedThisWeek || 0}
+                                        </span>
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
 
-                        <Card className="col-span-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-xs md:text-sm font-medium">
-                                    Pending
-                                </CardTitle>
-                                <AlertCircle className="w-4 h-4 text-yellow-500" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-lg md:text-2xl font-bold text-yellow-500">
-                                    {stats.pending}
+                        {/* Pending Tasks Card */}
+                        <Card className="group hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-16 -translate-y-16">
+                                <div className="absolute inset-0 bg-yellow-500/10 rounded-full blur-2xl group-hover:bg-yellow-500/20 transition-all duration-300" />
+                            </div>
+                            <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-sm font-medium">
+                                        Pending Tasks
+                                    </CardTitle>
+                                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 group-hover:from-yellow-100 group-hover:to-yellow-200 transition-all duration-300">
+                                        <AlertCircle className="w-4 h-4 text-yellow-600" />
+                                    </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Tasks pending
-                                </p>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="text-3xl font-bold tracking-tight text-yellow-600">
+                                            {stats.pending}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                            Tasks pending
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <div className="flex -space-x-2">
+                                            {[...Array(3)].map((_, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="h-8 w-8 rounded-full border-2 border-white bg-gradient-to-br from-yellow-50 to-yellow-100 flex items-center justify-center"
+                                                >
+                                                    <Clock className="h-3 w-3 text-yellow-600" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span>Priority Distribution</span>
+                                    </div>
+                                    <div className="flex gap-1 h-1.5">
+                                        <div className="w-1/2 rounded-full bg-red-500" />
+                                        <div className="w-1/3 rounded-full bg-yellow-500" />
+                                        <div className="w-1/6 rounded-full bg-green-500" />
+                                    </div>
+                                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                        <span>High</span>
+                                        <span>Medium</span>
+                                        <span>Low</span>
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
 
-                        <Card className="col-span-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-xs md:text-sm font-medium">
-                                    Due Today
-                                </CardTitle>
-                                <Calendar className="w-4 h-4 text-blue-500" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-lg md:text-2xl font-bold text-blue-500">
-                                    {
-                                        todos.filter(
-                                            (todo) =>
-                                                new Date(
-                                                    todo.due_date
-                                                ).toDateString() ===
-                                                new Date().toDateString()
-                                        ).length
-                                    }
+                        {/* Due Today Card */}
+                        <Card className="group hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-16 -translate-y-16">
+                                <div className="absolute inset-0 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all duration-300" />
+                            </div>
+                            <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-sm font-medium">
+                                        Due Today
+                                    </CardTitle>
+                                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 group-hover:from-purple-100 group-hover:to-purple-200 transition-all duration-300">
+                                        <Calendar className="w-4 h-4 text-purple-600" />
+                                    </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Tasks due today
-                                </p>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="text-3xl font-bold tracking-tight text-purple-600">
+                                            {
+                                                todos.filter(
+                                                    (todo) =>
+                                                        new Date(
+                                                            todo.due_date
+                                                        ).toDateString() ===
+                                                        new Date().toDateString()
+                                                ).length
+                                            }
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                            Tasks due today
+                                        </p>
+                                    </div>
+                                    <div className="relative h-[48px] w-[48px]">
+                                        <div className="absolute inset-0 rounded-full bg-purple-100" />
+                                        <svg className="transform -rotate-90">
+                                            <circle
+                                                cx="24"
+                                                cy="24"
+                                                r="20"
+                                                strokeWidth="8"
+                                                stroke="currentColor"
+                                                fill="none"
+                                                className="text-purple-500"
+                                                strokeDasharray={`${
+                                                    (stats.completed /
+                                                        stats.total) *
+                                                    125
+                                                } 125`}
+                                            />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                                    <div className="flex flex-col gap-1">
+                                        <div className="text-xs font-medium">
+                                            Overdue
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Timer className="h-3 w-3 text-red-500" />
+                                            <span className="text-xs text-red-500 font-medium">
+                                                {stats.overdue || 0}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <div className="text-xs font-medium">
+                                            Upcoming
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Calendar className="h-3 w-3 text-purple-500" />
+                                            <span className="text-xs text-purple-500 font-medium">
+                                                {stats.upcoming || 0}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -1225,45 +1621,16 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                                 <Input
                                     type="search"
                                     placeholder="Search tasks..."
-                                    className="pl-10 w-full"
+                                    className="pl-10 w-full lg:w-1/4"
                                     value={searchQuery}
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
                                     }
                                 />
                             </div>
-                            <Select>
-                                <SelectTrigger className="w-full md:w-[180px]">
-                                    <SelectValue placeholder="All Categories" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">
-                                        All Categories
-                                    </SelectItem>
-                                    {categories.map((category) => (
-                                        <SelectItem
-                                            key={category.id}
-                                            value={category.slug}
-                                        >
-                                            {category.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
                         </div>
                         <div className="flex items-center justify-between md:justify-end gap-3">
                             <div className="flex items-center gap-2">
-                                <Button
-                                    variant={
-                                        viewType === "grid"
-                                            ? "default"
-                                            : "outline"
-                                    }
-                                    size="icon"
-                                    onClick={() => setViewType("grid")}
-                                >
-                                    <Grid className="h-4 w-4" />
-                                </Button>
                                 <Button
                                     variant={
                                         viewType === "list"
@@ -1274,6 +1641,17 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                                     onClick={() => setViewType("list")}
                                 >
                                     <List className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant={
+                                        viewType === "grid"
+                                            ? "default"
+                                            : "outline"
+                                    }
+                                    size="icon"
+                                    onClick={() => setViewType("grid")}
+                                >
+                                    <Grid className="h-4 w-4" />
                                 </Button>
                             </div>
                             {AddTaskDialog}
@@ -1286,7 +1664,7 @@ export default function Dashboard({ auth, todos, categories, stats }) {
 
             <div className="p-4">
                 <div className="mx-auto">
-                    {viewType === "grid" ? <TodoGrid /> : <TodoTable />}
+                    {viewType === "grid" ? <TodoTable /> : <TodoGrid />}
                 </div>
             </div>
             {BulkActionsToolbar}
