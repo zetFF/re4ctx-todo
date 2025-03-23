@@ -172,32 +172,6 @@ class TodoController extends Controller
                 ];
             });
 
-        // Calculate efficiency score
-        $stats['efficiency'] = Todo::where('status', 'completed')
-            ->where('completed_at', '<=', 'due_date')
-            ->count() / max(Todo::count(), 1) * 100;
-
-        // Calculate streak
-        $stats['streak'] = Todo::selectRaw('
-            COUNT(DISTINCT DATE(completed_at)) as streak_days
-        ')
-        ->where('status', 'completed')
-        ->where('completed_at', '>=', function($query) {
-            $query->selectRaw('MAX(date) as last_incomplete_date')
-                ->from(function($subquery) {
-                    $subquery->selectRaw('
-                        DATE(completed_at) as date,
-                        COUNT(*) as completed_count,
-                        (SELECT COUNT(*) FROM todos WHERE DATE(created_at) = DATE(t1.completed_at)) as total_count
-                    ')
-                    ->from('todos as t1')
-                    ->where('status', 'completed')
-                    ->groupBy('date')
-                    ->having('completed_count', '<', 'total_count');
-                }, 'incomplete_dates');
-        })
-        ->value('streak_days');
-
         return Inertia::render('Analytics', compact(
             'stats',
             'tasksByCategory',
