@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TodoController;
+use App\Http\Controllers\AnalyticsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -17,6 +18,8 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [TodoController::class, 'index'])->name('dashboard');
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+    Route::get('/upcoming', [TodoController::class, 'upcoming'])->name('upcoming');
     Route::resource('todos', TodoController::class);
     Route::put('/todos/{todo}/complete', [TodoController::class, 'complete'])
         ->name('todos.complete')

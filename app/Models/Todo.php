@@ -15,10 +15,11 @@ class Todo extends Model
         'status',
         'priority',
         'category_id',
+        'user_id',
         'due_date',
         'due_time',
         'reminder',
-        'user_id'
+        'completed_at'
     ];
 
     protected $casts = [
