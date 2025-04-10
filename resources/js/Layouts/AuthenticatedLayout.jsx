@@ -40,13 +40,7 @@ export default function AuthenticatedLayout({ header, children }) {
             href: "/analytics",
             icon: BarChart3,
             active: route().current("analytics"),
-        },
-        {
-            title: "Upcoming",
-            href: "/upcoming",
-            icon: CalendarCheck,
-            active: route().current("upcoming"),
-        },
+        }
     ];
 
     const bottomLinks = [

@@ -196,5 +196,96 @@ class TodoController extends Controller
         return Inertia::render('Upcoming', compact('upcomingTasks'));
     }
 
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:10240', // max 10MB
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $path = $file->getRealPath();
+            
+            // Read CSV file
+            $csvData = array_map('str_getcsv', file($path));
+            $headers = array_shift($csvData); // Remove and get headers
+            
+            // Validate headers
+            $requiredHeaders = ['title', 'description', 'priority', 'category_id', 'due_date', 'due_time'];
+            $headerDiff = array_diff($requiredHeaders, $headers);
+            if (!empty($headerDiff)) {
+                return redirect()->back()->withErrors(['file' => 'CSV file is missing required columns: ' . implode(', ', $headerDiff)]);
+            }
+
+            // Get valid category IDs
+            $validCategoryIds = Category::pluck('id')->toArray();
+            
+            $todos = [];
+            $user_id = auth()->id();
+            $now = now();
+            $errors = [];
+            $row = 1;
+            
+            foreach ($csvData as $rowData) {
+                $row++;
+                if (count($rowData) >= 6) {
+                    // Validate priority
+                    if (!in_array($rowData[2], ['high', 'medium', 'low'])) {
+                        $errors[] = "Row {$row}: Invalid priority value. Must be 'high', 'medium', or 'low'.";
+                        continue;
+                    }
+
+                    // Validate category_id
+                    if (!in_array((int)$rowData[3], $validCategoryIds)) {
+                        $errors[] = "Row {$row}: Invalid category_id. Category does not exist.";
+                        continue;
+                    }
+
+                    // Validate date format
+                    if (!strtotime($rowData[4])) {
+                        $errors[] = "Row {$row}: Invalid date format. Use YYYY-MM-DD format.";
+                        continue;
+                    }
+
+                    // Validate time format
+                    if (!preg_match("/^(?:2[0-3]|[01][0-9]):[0-5][0-9]$/", $rowData[5])) {
+                        $errors[] = "Row {$row}: Invalid time format. Use HH:MM format (24-hour).";
+                        continue;
+                    }
+
+                    $todos[] = [
+                        'user_id' => $user_id,
+                        'title' => $rowData[0],
+                        'description' => $rowData[1],
+                        'priority' => $rowData[2],
+                        'category_id' => (int)$rowData[3],
+                        'due_date' => $rowData[4],
+                        'due_time' => $rowData[5],
+                        'status' => 'pending',
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                } else {
+                    $errors[] = "Row {$row}: Insufficient columns.";
+                }
+            }
+            
+            if (!empty($errors)) {
+                return redirect()->back()->withErrors(['file' => implode("\n", $errors)]);
+            }
+
+            // Bulk insert if we have valid todos
+            if (!empty($todos)) {
+                Todo::insert($todos);
+                return redirect()->back()->with('success', count($todos) . ' tasks imported successfully');
+            }
+
+            return redirect()->back()->withErrors(['file' => 'No valid data found in the CSV file.']);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['file' => 'Error processing file: ' . $e->getMessage()]);
+        }
+    }
+
     // Tambahkan method lain untuk CRUD
 } 

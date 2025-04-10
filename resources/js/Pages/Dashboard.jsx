@@ -1,7 +1,6 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, useForm, router } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Input } from "@/Components/ui/input";
 import {
     Select,
@@ -17,22 +16,13 @@ import {
     Search,
     Bell,
     Filter,
-    Plus,
     Calendar,
-    Clock,
     CheckCircle2,
-    AlertCircle,
-    Loader2,
     Pencil,
     Trash2,
     MoreVertical,
-    Folder,
     Circle,
-    MoreHorizontal,
-    ChevronLeft,
-    ChevronRight,
     ClipboardList,
-    Timer,
     ChevronDown,
     X,
     ChartPieIcon,
@@ -41,8 +31,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
 import {
@@ -51,40 +39,14 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
     DialogFooter,
 } from "@/Components/ui/dialog";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { Calendar as DatePicker } from "@/Components/ui/calendar";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/Components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getPriorityColor, getCategoryColor } from "@/utils/colorUtils";
 import { Label } from "@/Components/ui/label";
 import { Badge } from "@/Components/ui/badge";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/Components/ui/table";
-import { Checkbox } from "@/Components/ui/checkbox";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/Components/ui/alert-dialog";
+
 
 // Import komponen-komponen yang telah dipisahkan
 import StatsCards from "@/Components/Dashboard/StatsCards";
@@ -93,9 +55,310 @@ import EditTaskDialog from "@/Components/Todos/EditTaskDialog";
 import DeleteConfirmDialog from "@/Components/Todos/DeleteConfirmDialog";
 import TodoGrid from "@/Components/Todos/TodoGrid";
 import TodoTable from "@/Components/Todos/TodoTable";
+import ImportTasksDialog from "@/Components/Todos/ImportTasksDialog";
+
+// Tambahkan section Statistics Overview yang lebih baik
+const StatisticsOverviewHeader = ({ showStats, setShowStats, stats }) => (
+    <div className="relative mb-6">
+        {/* Gradient line indicator */}
+        <div className="absolute -left-3 top-0 h-full w-1 bg-gradient-to-b from-primary/50 to-primary/5 rounded-full"></div>
+        
+        <Button
+            variant="ghost"
+            onClick={() => setShowStats(!showStats)}
+            className={`
+                w-full flex items-center justify-between px-4 py-3
+                transition-all duration-300 rounded-lg
+                hover:bg-gray-50/80
+                ${showStats ? 'bg-gray-50/80 shadow-sm' : ''}
+            `}
+        >
+            <div className="flex items-center gap-3">
+                <div className={`
+                    p-2 rounded-lg transition-all duration-300
+                    ${showStats 
+                        ? 'bg-primary/10 text-primary rotate-0' 
+                        : 'bg-gray-100 text-gray-500 group-hover:bg-primary/5 group-hover:text-primary/80'}
+                `}>
+                    <ChartPieIcon className="h-5 w-5" />
+                </div>
+                <div className="flex flex-col items-start">
+                    <span className="font-semibold text-gray-700">Statistics Overview</span>
+                    <span className="text-xs text-gray-500">Track your task progress and analytics</span>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-6">
+                {/* Quick Stats Pills - Visible when collapsed */}
+                {!showStats && (
+                    <div className="hidden md:flex items-center gap-4 px-4 py-2 bg-white/50 rounded-full shadow-sm">
+                        <span className="flex items-center gap-2">
+                            <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                            <span className="text-sm font-medium text-gray-600">
+                                {stats.total} Total
+                            </span>
+                        </span>
+                        <div className="h-4 w-px bg-gray-200" />
+                        <span className="flex items-center gap-2">
+                            <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                            <span className="text-sm font-medium text-gray-600">
+                                {stats.completed} Done
+                            </span>
+                        </span>
+                        <div className="h-4 w-px bg-gray-200" />
+                        <span className="flex items-center gap-2">
+                            <div className="h-2.5 w-2.5 rounded-full bg-yellow-500" />
+                            <span className="text-sm font-medium text-gray-600">
+                                {stats.pending} Pending
+                            </span>
+                        </span>
+                    </div>
+                )}
+
+                {/* Mobile Quick Stats */}
+                {!showStats && (
+                    <div className="md:hidden flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                            {stats.total}
+                        </Badge>
+                        <Badge variant="secondary" className="bg-green-50 text-green-700">
+                            {stats.completed}
+                        </Badge>
+                        <Badge variant="secondary" className="bg-yellow-50 text-yellow-700">
+                            {stats.pending}
+                        </Badge>
+                    </div>
+                )}
+
+                <div className={`
+                    transition-transform duration-300
+                    ${showStats ? 'rotate-180' : 'rotate-0'}
+                `}>
+                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                </div>
+            </div>
+        </Button>
+    </div>
+);
+
+
+const MobileStatsOverview = ({ showStats, setShowStats, stats }) => (
+    <div className="md:hidden mb-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div 
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
+                onClick={() => setShowStats(!showStats)}
+            >
+                <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/5">
+                        <ChartPieIcon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="font-medium text-gray-900">Statistics Overview</h3>
+                        <p className="text-xs text-gray-500">Track your task progress and analytics</p>
+                    </div>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${showStats ? 'rotate-180' : ''}`} />
+            </div>
+
+            {/* Quick Stats Pills */}
+            <div className="px-4 pb-4 flex gap-2">
+                <div className="flex-1 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-2 shadow-sm">
+                    <p className="text-xs text-blue-600 mb-1">Total</p>
+                    <p className="text-lg font-semibold text-blue-700">{stats.total}</p>
+                </div>
+                <div className="flex-1 bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-2 shadow-sm">
+                    <p className="text-xs text-green-600 mb-1">Done</p>
+                    <p className="text-lg font-semibold text-green-700">{stats.completed}</p>
+                </div>
+                <div className="flex-1 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-2 shadow-sm">
+                    <p className="text-xs text-amber-600 mb-1">Pending</p>
+                    <p className="text-lg font-semibold text-amber-700">{stats.pending}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+const SearchAndFilterMobile = ({ searchQuery, setSearchQuery, viewType, setViewType, setShowFilters }) => (
+    <div className="md:hidden space-y-3">
+        {/* Search and Filter Bar */}
+        <div className="flex items-center gap-2">
+            {/* Search Input */}
+            <div className="relative flex-1 bg-white rounded-lg shadow-sm">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                    type="search"
+                    placeholder="Search tasks..."
+                    className="pl-10 w-full border-none bg-transparent"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+            
+            {/* Filter Button */}
+            <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10"
+                onClick={() => setShowFilters(true)}
+            >
+                <Filter className="h-4 w-4" />
+            </Button>
+        </div>
+    </div>
+);
+
+// Desktop Search Component
+const DesktopSearch = ({ searchQuery, setSearchQuery }) => (
+    <div className="hidden md:block w-full max-w-md">
+        <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+                type="search"
+                placeholder="Search tasks..."
+                className="pl-10 w-full bg-white shadow-sm border-gray-200"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+            />
+        </div>
+    </div>
+);
+
+const MobileTaskList = ({ todos, categories, handleComplete, handleEdit, handleDelete }) => (
+    <div className="md:hidden mt-4 space-y-3">
+        {todos.map((todo) => (
+            <div key={todo.id} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="mt-0.5 p-0 h-auto hover:bg-transparent"
+                            onClick={() => handleComplete(todo.id)}
+                        >
+                            {todo.status === "completed" ? (
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            ) : (
+                                <Circle className="h-5 w-5 text-gray-300" />
+                            )}
+                        </Button>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-gray-900 line-clamp-1">{todo.title}</h3>
+                            <p className="text-sm text-gray-500 line-clamp-2 mt-1">{todo.description}</p>
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                <Badge className={getPriorityColor(todo.priority)}>
+                                    {todo.priority}
+                                </Badge>
+                                {todo.category && (
+                                    <Badge variant="outline" className={getCategoryColor(todo.category.color)}>
+                                        {todo.category.name}
+                                    </Badge>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                                <Calendar className="h-3 w-3" />
+                                <span>{format(new Date(todo.due_date), "MMM dd, yyyy")}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => handleEdit(todo)}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDelete(todo)} className="text-red-600">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
+// Add FiltersDialog component for mobile
+const FiltersDialog = ({ isOpen, setIsOpen, filterStatus, setFilterStatus, filterPriority, setFilterPriority, filterCategory, setFilterCategory, categories, resetFilters }) => (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[425px] p-0">
+            <DialogHeader className="px-4 pt-4">
+                <DialogTitle>Filter Tasks</DialogTitle>
+                <DialogDescription>
+                    Apply filters to your tasks list
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 p-4">
+                {/* Status Filter */}
+                <div className="space-y-2">
+                    <Label>Status</Label>
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Tasks</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Priority Filter */}
+                <div className="space-y-2">
+                    <Label>Priority</Label>
+                    <Select value={filterPriority} onValueChange={setFilterPriority}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Priorities</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="low">Low</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Category Filter */}
+                <div className="space-y-2">
+                    <Label>Category</Label>
+                    <Select value={filterCategory} onValueChange={setFilterCategory}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Categories</SelectItem>
+                            {categories.map((category) => (
+                                <SelectItem key={category.id} value={category.id.toString()}>
+                                    {category.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+            <DialogFooter className="flex justify-between p-4 border-t">
+                <Button variant="ghost" onClick={resetFilters}>
+                    Reset All
+                </Button>
+                <Button onClick={() => setIsOpen(false)}>
+                    Apply Filters
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+);
 
 export default function Dashboard({ auth, todos, categories, stats }) {
-    const [viewType, setViewType] = useState("table");
+    const [viewType, setViewType] = useState("list");
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
@@ -109,9 +372,10 @@ export default function Dashboard({ auth, todos, categories, stats }) {
     const [selectedTodo, setSelectedTodo] = useState(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10; // Jumlah item per halaman
+    const itemsPerPage = 10;
     const [showStats, setShowStats] = useState(true);
     const [showFilters, setShowFilters] = useState(false);
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         title: "",
@@ -275,98 +539,6 @@ export default function Dashboard({ auth, todos, categories, stats }) {
         sortBy,
     ]);
 
-    const [selectedTodos, setSelectedTodos] = useState([]);
-
-    const handleBulkComplete = () => {
-        selectedTodos.forEach((id) => handleComplete(id));
-        setSelectedTodos([]);
-    };
-
-    const handleBulkDelete = () => {
-        // Implement bulk delete logic
-        selectedTodos.forEach((id) => handleDelete(id));
-        setSelectedTodos([]);
-    };
-
-    const FiltersDropdown = (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                    <Filter className="w-4 h-4 md:mr-2" />
-                    <span className="hidden md:inline">Filters</span>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Sort By</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setSortBy("due_date")}>
-                    Due Date {sortBy === "due_date" && "✓"}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("priority")}>
-                    Priority {sortBy === "priority" && "✓"}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("title")}>
-                    Title {sortBy === "title" && "✓"}
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setFilterStatus("all")}>
-                    All Tasks {filterStatus === "all" && "✓"}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterStatus("completed")}>
-                    Completed {filterStatus === "completed" && "✓"}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterStatus("pending")}>
-                    Pending {filterStatus === "pending" && "✓"}
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
-
-    const BulkActionsToolbar = selectedTodos.length > 0 && (
-        <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 flex items-center gap-2">
-            <span className="text-sm text-gray-600">
-                {selectedTodos.length} items selected
-            </span>
-            <Button
-                size="sm"
-                variant="outline"
-                onClick={handleBulkComplete}
-                className="text-green-600 hover:text-green-700"
-            >
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                Complete All
-            </Button>
-            <Button
-                size="sm"
-                variant="outline"
-                onClick={handleBulkDelete}
-                className="text-red-600 hover:text-red-700"
-            >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete All
-            </Button>
-        </div>
-    );
-
-    const SelectionCheckbox = ({ todoId }) => (
-        <input
-            type="checkbox"
-            checked={selectedTodos.includes(todoId)}
-            onChange={(e) => {
-                if (e.target.checked) {
-                    setSelectedTodos([...selectedTodos, todoId]);
-                } else {
-                    setSelectedTodos(
-                        selectedTodos.filter((id) => id !== todoId)
-                    );
-                }
-            }}
-            className="h-4 w-4 rounded border-gray-300"
-        />
-    );
-
     // Fungsi untuk reset semua filter
     const resetFilters = () => {
         setFilterStatus("all");
@@ -376,373 +548,216 @@ export default function Dashboard({ auth, todos, categories, stats }) {
         setSearchQuery("");
     };
 
-    // Komponen UI untuk filter panel
-    const FiltersPanel = () => (
-        <div
-            className={`space-y-4 p-4 bg-gray-50 rounded-lg border ${
-                showFilters ? "block" : "hidden"
-            }`}
-        >
-            <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">Filters</h3>
-                <div className="flex gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={resetFilters}
-                        className="text-xs text-gray-500 h-8"
-                    >
-                        Reset all
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setShowFilters(false)}
-                        className="h-8 w-8"
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Status Filter */}
-                <div className="space-y-2">
-                    <label className="text-xs font-medium">Status</label>
-                    <Select
-                        value={filterStatus}
-                        onValueChange={setFilterStatus}
-                    >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Priority Filter */}
-                <div className="space-y-2">
-                    <label className="text-xs font-medium">Priority</label>
-                    <Select
-                        value={filterPriority}
-                        onValueChange={setFilterPriority}
-                    >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="low">Low</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Category Filter */}
-                <div className="space-y-2">
-                    <label className="text-xs font-medium">Category</label>
-                    <Select
-                        value={filterCategory}
-                        onValueChange={setFilterCategory}
-                    >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Categories</SelectItem>
-                            {categories.map((category) => (
-                                <SelectItem
-                                    key={category.id}
-                                    value={category.id.toString()}
-                                >
-                                    {category.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-
-            {/* Sort Options */}
-            <div className="space-y-2">
-                <label className="text-xs font-medium">Sort By</label>
-                <div className="flex flex-wrap gap-2">
-                    <Button
-                        variant={sortBy === "due_date" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSortBy("due_date")}
-                        className="text-xs h-8"
-                    >
-                        Due Date
-                    </Button>
-                    <Button
-                        variant={sortBy === "priority" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSortBy("priority")}
-                        className="text-xs h-8"
-                    >
-                        Priority
-                    </Button>
-                    <Button
-                        variant={sortBy === "title" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSortBy("title")}
-                        className="text-xs h-8"
-                    >
-                        Title
-                    </Button>
-                </div>
-            </div>
-
-            <div className="flex items-center text-xs text-gray-500">
-                <div>
-                    Showing{" "}
-                    <span className="font-medium">{filteredTodos.length}</span>{" "}
-                    of <span className="font-medium">{todos.length}</span> tasks
-                </div>
-            </div>
-        </div>
-    );
-
     return (
-        <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="w-full">
-                    {/* Header bagian atas - Task Overview dan Aksi */}
-                    <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <AuthenticatedLayout user={auth.user} header={null}>
+            <Head title="Dashboard" />
+
+            <div className="p-4 pb-24 md:p-8">
+                {/* Mobile Header */}
+                <div className="md:hidden mb-6">
+                    <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-full bg-gradient-to-r from-primary/20 to-primary/10">
-                                <ClipboardList className="w-5 h-5 text-primary" />
+                            <div className="p-2 rounded-lg bg-primary/5">
+                                <ClipboardList className="h-5 w-5 text-primary" />
                             </div>
-                            <h2 className="text-xl md:text-2xl font-bold text-gray-800">
-                                Task Overview
-                            </h2>
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-800">Task Overview</h2>
+                                <p className="text-xs text-gray-500">Manage your tasks</p>
+                            </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="outline"
-                                size="sm"
+                                size="icon"
                                 className="relative"
                             >
-                                <Bell className="w-4 h-4" />
+                                <Bell className="h-4 w-4" />
                                 {stats.pending > 0 && (
                                     <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
                                         {stats.pending}
                                     </span>
                                 )}
                             </Button>
-                            {FiltersDropdown}
                             <AddTaskDialog categories={categories} />
                         </div>
                     </div>
+                </div>
 
-                    {/* Stats Toggle Button - Desain Lebih Menarik */}
-                    <div className="relative mb-6">
-                        <div className="absolute -left-3 top-0 h-full w-1 bg-gradient-to-b from-primary/50 to-primary/5 rounded-full"></div>
-                        <Button
-                            variant="ghost"
-                            onClick={() => setShowStats(!showStats)}
-                            className={`
-                                w-full flex items-center justify-between px-3 py-2 
-                                transition-all duration-300
-                                hover:bg-gray-50 rounded-md group
-                                ${showStats ? "mb-2 bg-gray-50/80" : ""}
-                            `}
-                        >
-                            <div className="flex items-center gap-2">
-                                <div
-                                    className={`
-                                    p-1.5 rounded-md 
-                                    ${
-                                        showStats
-                                            ? "bg-primary/10 text-primary"
-                                            : "bg-gray-100 text-gray-500 group-hover:bg-primary/5 group-hover:text-primary/80"
-                                    }
-                                    transition-all duration-300
-                                `}
-                                >
-                                    <ChartPieIcon className="h-4 w-4" />
-                                </div>
-                                <span className="font-medium text-left">
-                                    Statistics Overview
-                                </span>
+                {/* Desktop Header */}
+                <div className="hidden md:block">
+                    <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 rounded-full bg-gradient-to-r from-primary/20 to-primary/10">
+                                <ClipboardList className="w-6 h-6 text-primary" />
                             </div>
-                            <div className="flex items-center gap-4">
-                                {!showStats && (
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground pr-2">
-                                        <span className="flex items-center gap-1">
-                                            <div className="h-2 w-2 rounded-full bg-blue-500" />
-                                            <span className="text-xs">
-                                                Total: {stats.total}
-                                            </span>
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <div className="h-2 w-2 rounded-full bg-green-500" />
-                                            <span className="text-xs">
-                                                Done: {stats.completed}
-                                            </span>
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <div className="h-2 w-2 rounded-full bg-yellow-500" />
-                                            <span className="text-xs">
-                                                Pending: {stats.pending}
-                                            </span>
-                                        </span>
-                                    </div>
-                                )}
-                                <div
-                                    className={`
-                                    transition-transform duration-300 
-                                    ${showStats ? "rotate-180" : ""}
-                                `}
-                                >
-                                    <ChevronDown className="h-4 w-4" />
-                                </div>
-                            </div>
-                        </Button>
-                    </div>
-
-                    {/* Stats Cards dengan animasi yang lebih mulus */}
-                    <div
-                        className={cn(
-                            "gap-6 transition-all duration-500",
-                            showStats
-                                ? "opacity-100 max-h-[500px] mb-8"
-                                : "opacity-0 max-h-0 overflow-hidden mb-0"
-                        )}
-                    >
-                        <StatsCards stats={stats} todos={todos} />
-                    </div>
-
-                    {/* Search dan Filter Tools - Layout diperbaiki */}
-                    <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-                        <div className="flex flex-col md:flex-row gap-3 md:items-center flex-1">
-                            <div className="relative flex-1 max-w-md">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                                <Input
-                                    type="search"
-                                    placeholder="Search tasks..."
-                                    className="pl-10 w-full"
-                                    value={searchQuery}
-                                    onChange={(e) =>
-                                        setSearchQuery(e.target.value)
-                                    }
-                                />
-                            </div>
-
-                            {/* Filter Tags yang lebih menarik */}
-                            <div className="flex flex-wrap gap-2">
-                                {filterStatus !== "all" && (
-                                    <Badge
-                                        variant="outline"
-                                        className="bg-blue-50 text-blue-700 hover:bg-blue-100 gap-1 px-2 py-1"
-                                    >
-                                        Status: {filterStatus}
-                                        <X
-                                            className="h-3 w-3 cursor-pointer"
-                                            onClick={() =>
-                                                setFilterStatus("all")
-                                            }
-                                        />
-                                    </Badge>
-                                )}
-                                {filterPriority !== "all" && (
-                                    <Badge
-                                        variant="outline"
-                                        className="bg-amber-50 text-amber-700 hover:bg-amber-100 gap-1 px-2 py-1"
-                                    >
-                                        Priority: {filterPriority}
-                                        <X
-                                            className="h-3 w-3 cursor-pointer"
-                                            onClick={() =>
-                                                setFilterPriority("all")
-                                            }
-                                        />
-                                    </Badge>
-                                )}
-                                {filterCategory !== "all" && (
-                                    <Badge
-                                        variant="outline"
-                                        className="bg-purple-50 text-purple-700 hover:bg-purple-100 gap-1 px-2 py-1"
-                                    >
-                                        Category:{" "}
-                                        {
-                                            categories.find(
-                                                (c) =>
-                                                    c.id.toString() ===
-                                                    filterCategory
-                                            )?.name
-                                        }
-                                        <X
-                                            className="h-3 w-3 cursor-pointer"
-                                            onClick={() =>
-                                                setFilterCategory("all")
-                                            }
-                                        />
-                                    </Badge>
-                                )}
-                                {(filterStatus !== "all" ||
-                                    filterPriority !== "all" ||
-                                    filterCategory !== "all") && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={resetFilters}
-                                        className="text-xs h-7 px-2"
-                                    >
-                                        Clear All
-                                    </Button>
-                                )}
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-800">Task Overview</h2>
+                                <p className="text-sm text-gray-500">Manage and track your tasks efficiently</p>
                             </div>
                         </div>
-
-                        {/* View Options dengan gaya yang lebih modern */}
-                        <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg">
-                          
+                        
+                        <div className="flex items-center gap-2">
+                            {/* View Type Buttons for Desktop */}
+                            <div className="hidden md:flex items-center bg-white rounded-lg border border-gray-200 p-1 shadow-sm">
+                                <Button
+                                    variant={viewType === "list" ? "default" : "ghost"}
+                                    size="sm"
+                                    onClick={() => setViewType("list")}
+                                    className="h-8 flex items-center justify-center gap-2"
+                                >
+                                    <List className="h-4 w-4" />
+                                    <span className="text-sm">List</span>
+                                </Button>
+                                <Button
+                                    variant={viewType === "grid" ? "default" : "ghost"}
+                                    size="sm"
+                                    onClick={() => setViewType("grid")}
+                                    className="h-8 flex items-center justify-center gap-2"
+                                >
+                                    <Grid className="h-4 w-4" />
+                                    <span className="text-sm">Grid</span>
+                                </Button>
+                            </div>
 
                             <Button
-                                variant={
-                                    viewType === "table" ? "default" : "ghost"
-                                }
+                                variant="outline"
                                 size="sm"
-                                onClick={() => setViewType("table")}
-                                className={
-                                    viewType === "table" ? "" : "text-gray-500"
-                                }
+                                className="relative hidden md:flex"
                             >
-                                <List className="h-4 w-4 mr-1" />
-                                List
+                                <Bell className="w-4 h-4 mr-2" />
+                                Notifications
+                                {stats.pending > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                                        {stats.pending}
+                                    </span>
+                                )}
                             </Button>
 
-                            <Button
-                                variant={
-                                    viewType === "grid" ? "default" : "ghost"
-                                }
-                                size="sm"
-                                onClick={() => setViewType("grid")}
-                                className={
-                                    viewType === "grid" ? "" : "text-gray-500"
-                                }
-                            >
-                                <Grid className="h-4 w-4 mr-1" />
-                                Grid
-                            </Button>
+                            <AddTaskDialog categories={categories} />
+                            <ImportTasksDialog />
+                        </div>
+                    </div>
+
+                    {/* Desktop Search and Filters Row */}
+                    <div className="hidden md:flex items-center justify-between gap-4 mb-6">
+                        <DesktopSearch 
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                        />
+                        
+                        {/* Active Filters Tags */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {filterStatus !== "all" && (
+                                <Badge
+                                    variant="outline"
+                                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 gap-1 px-2 py-1"
+                                >
+                                    Status: {filterStatus}
+                                    <X
+                                        className="h-3 w-3 cursor-pointer"
+                                        onClick={() => setFilterStatus("all")}
+                                    />
+                                </Badge>
+                            )}
+                            {filterPriority !== "all" && (
+                                <Badge
+                                    variant="outline"
+                                    className="bg-amber-50 text-amber-700 hover:bg-amber-100 gap-1 px-2 py-1"
+                                >
+                                    Priority: {filterPriority}
+                                    <X
+                                        className="h-3 w-3 cursor-pointer"
+                                        onClick={() => setFilterPriority("all")}
+                                    />
+                                </Badge>
+                            )}
+                            {filterCategory !== "all" && (
+                                <Badge
+                                    variant="outline"
+                                    className="bg-purple-50 text-purple-700 hover:bg-purple-100 gap-1 px-2 py-1"
+                                >
+                                    Category:{" "}
+                                    {categories.find(
+                                        (c) => c.id.toString() === filterCategory
+                                    )?.name}
+                                    <X
+                                        className="h-3 w-3 cursor-pointer"
+                                        onClick={() => setFilterCategory("all")}
+                                    />
+                                </Badge>
+                            )}
+                            {(filterStatus !== "all" ||
+                                filterPriority !== "all" ||
+                                filterCategory !== "all") && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={resetFilters}
+                                    className="text-xs h-7 px-2"
+                                >
+                                    Clear All
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
-            }
-        >
-            <Head title="Dashboard" />
 
-            <div className="p-4">
-                <div className="mx-auto">
-                    {viewType === "table" ? (
+                <MobileStatsOverview 
+                    showStats={showStats}
+                    setShowStats={setShowStats}
+                    stats={stats}
+                />
+
+                <div className="hidden md:block">
+                    <StatisticsOverviewHeader 
+                        showStats={showStats}
+                        setShowStats={setShowStats}
+                        stats={stats}
+                    />
+                </div>
+
+                <div className={cn(
+                    "transition-all duration-500 ease-in-out",
+                    showStats
+                        ? "opacity-100 max-h-[800px] mb-12 transform translate-y-0"
+                        : "opacity-0 max-h-0 overflow-hidden mb-0 transform -translate-y-4"
+                )}>
+                    <StatsCards stats={stats} todos={todos} />
+                </div>
+
+                <SearchAndFilterMobile 
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    viewType={viewType}
+                    setViewType={setViewType}
+                    setShowFilters={setIsFiltersOpen}
+                />
+
+                <FiltersDialog 
+                    isOpen={isFiltersOpen}
+                    setIsOpen={setIsFiltersOpen}
+                    filterStatus={filterStatus}
+                    setFilterStatus={setFilterStatus}
+                    filterPriority={filterPriority}
+                    setFilterPriority={setFilterPriority}
+                    filterCategory={filterCategory}
+                    setFilterCategory={setFilterCategory}
+                    categories={categories}
+                    resetFilters={resetFilters}
+                />
+
+                {/* Mobile Task List */}
+                <MobileTaskList 
+                    todos={filteredTodos}
+                    categories={categories}
+                    handleComplete={handleComplete}
+                    handleEdit={handleEdit}
+                    handleDelete={handleDelete}
+                />
+
+                {/* Desktop Task View */}
+                <div className="hidden md:block mt-4">
+                    {viewType === "list" ? (
                         <TodoTable
                             filteredTodos={filteredTodos}
                             categories={categories}
@@ -763,23 +778,21 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                         />
                     )}
                 </div>
-            </div>
 
-            {/* Gunakan komponen DeleteConfirmDialog yang telah dipisahkan */}
-            <DeleteConfirmDialog
-                todoToDelete={todoToDelete}
-                setTodoToDelete={setTodoToDelete}
-            />
-
-            {/* Gunakan komponen EditTaskDialog yang telah dipisahkan */}
-            {selectedTodo && (
-                <EditTaskDialog
-                    isOpen={isEditOpen}
-                    onClose={handleCloseEdit}
-                    todo={selectedTodo}
-                    categories={categories}
+                <DeleteConfirmDialog
+                    todoToDelete={todoToDelete}
+                    setTodoToDelete={setTodoToDelete}
                 />
-            )}
+
+                {selectedTodo && (
+                    <EditTaskDialog
+                        isOpen={isEditOpen}
+                        onClose={handleCloseEdit}
+                        todo={selectedTodo}
+                        categories={categories}
+                    />
+                )}
+            </div>
         </AuthenticatedLayout>
     );
 }
