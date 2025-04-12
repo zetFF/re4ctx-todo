@@ -5,9 +5,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up()
     {
         Schema::create('todos', function (Blueprint $table) {
@@ -20,9 +17,9 @@ return new class extends Migration
             $table->date('due_date');
             $table->time('due_time');
             $table->boolean('reminder')->default(false);
-            $table->boolean('is_completed')->default(false);
-            $table->boolean('is_archived')->default(false);
-            $table->boolean('is_favorite')->default(false);
+            // $table->boolean('is_completed')->default(false);
+            // $table->boolean('is_archived')->default(false);
+            // $table->boolean('is_favorite')->default(false);
             $table->string('status')->default('in_progress');
             $table->timestamps();
         });
