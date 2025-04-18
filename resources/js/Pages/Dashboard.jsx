@@ -180,7 +180,7 @@ const MobileStatsOverview = ({ showStats, setShowStats, stats }) => (
     </div>
 );
 
-const SearchAndFilterMobile = ({ searchQuery, setSearchQuery, viewType, setViewType, setShowFilters }) => (
+const SearchAndFilterMobile = ({ searchQuery, setSearchQuery, setShowFilters }) => (
     <div className="md:hidden space-y-3">
         {/* Search and Filter Bar */}
         <div className="flex items-center gap-2">
@@ -210,9 +210,9 @@ const SearchAndFilterMobile = ({ searchQuery, setSearchQuery, viewType, setViewT
 );
 
 // Desktop Search Component
-const DesktopSearch = ({ searchQuery, setSearchQuery }) => (
-    <div className="hidden md:block w-full max-w-md">
-        <div className="relative">
+const DesktopSearch = ({ searchQuery, setSearchQuery, setShowFilters }) => (
+    <div className="w-full items-center gap-3 flex">
+        <div className="relative w-96">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
                 type="search"
@@ -222,10 +222,21 @@ const DesktopSearch = ({ searchQuery, setSearchQuery }) => (
                 onChange={(e) => setSearchQuery(e.target.value)}
             />
         </div>
+        
+        {/* Filter Button for Desktop */}
+        <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center h-9 gap-2"
+            onClick={() => setShowFilters(true)}
+        >
+            <Filter className="h-4 w-4" />
+            <span>Filters</span>
+        </Button>
     </div>
 );
 
-const MobileTaskList = ({ todos, categories, handleComplete, handleEdit, handleDelete }) => (
+const MobileTaskList = ({ todos, handleComplete, handleEdit, handleDelete }) => (
     <div className="md:hidden mt-4 space-y-3">
         {todos.map((todo) => (
             <div key={todo.id} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
@@ -639,10 +650,11 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                     </div>
 
                     {/* Desktop Search and Filters Row */}
-                    <div className="hidden md:flex items-center justify-between gap-4 mb-6">
+                    <div className="hidden md:grid items-center justify-between gap-4 mb-6">
                         <DesktopSearch 
                             searchQuery={searchQuery}
                             setSearchQuery={setSearchQuery}
+                            setShowFilters={setIsFiltersOpen}
                         />
                         
                         {/* Active Filters Tags */}
@@ -658,7 +670,9 @@ export default function Dashboard({ auth, todos, categories, stats }) {
                                         onClick={() => setFilterStatus("all")}
                                     />
                                 </Badge>
+                                
                             )}
+                            {/* Other filter badges remain unchanged */}
                             {filterPriority !== "all" && (
                                 <Badge
                                     variant="outline"
