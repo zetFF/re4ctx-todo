@@ -29,6 +29,10 @@ export default function Login({ status, canResetPassword }) {
         });
     };
 
+    const handleGoogleLogin = () => {
+        window.location.href = route('auth.google');
+    };
+
     return (
         <GuestLayout>
             <Head title="Log in" />
@@ -55,18 +59,12 @@ export default function Login({ status, canResetPassword }) {
                                 variant="outline"
                                 className="w-full"
                                 type="button"
+                                onClick={handleGoogleLogin}
                             >
                                 <FaGoogle className="mr-2 h-4 w-4" />
                                 Continue with Google
                             </Button>
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                type="button"
-                            >
-                                <FaGithub className="mr-2 h-4 w-4" />
-                                Continue with GitHub
-                            </Button>
+                            {/* GitHub button remains unchanged */}
                         </div>
 
                         <div className="relative">

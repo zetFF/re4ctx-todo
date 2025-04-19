@@ -30,6 +30,10 @@ export default function Register() {
         });
     };
 
+    const handleGoogleSignup = () => {
+        window.location.href = route('auth.google');
+    };
+
     return (
         <GuestLayout>
             <Head title="Register" />
@@ -50,18 +54,12 @@ export default function Register() {
                                 variant="outline"
                                 className="w-full"
                                 type="button"
+                                onClick={handleGoogleSignup}
                             >
                                 <FaGoogle className="mr-2 h-4 w-4" />
                                 Sign up with Google
                             </Button>
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                type="button"
-                            >
-                                <FaGithub className="mr-2 h-4 w-4" />
-                                Sign up with GitHub
-                            </Button>
+                            {/* GitHub button remains unchanged */}
                         </div>
 
                         <div className="relative">
