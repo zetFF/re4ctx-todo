@@ -103,9 +103,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 {/* Mobile Header */}
                 <div className="h-16 flex items-center justify-between px-4 border-b">
                     <div className="flex items-center">
-                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                            Todo App
-                        </span>
+                    <img src="https://res.cloudinary.com/ddy7p8yrj/image/upload/v1742203820/wlltkoo3ipqb5lbbocdi.png" width={60} alt="" />
                     </div>
                     <Button
                         variant="ghost"
@@ -184,9 +182,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 <div className="flex items-center justify-between h-full">
                     {/* Logo and Brand */}
                     <div className="flex items-center gap-x-4">
-                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                            Todo App
-                        </span>
+                       <img src="https://res.cloudinary.com/ddy7p8yrj/image/upload/v1742203820/wlltkoo3ipqb5lbbocdi.png" width={60} alt="" />
                         
                         {/* Desktop Navigation Links - Enhanced with better visual indicators */}
                         <nav className="hidden md:flex items-center h-full ml-8 space-x-1">
