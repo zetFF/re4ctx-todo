@@ -388,7 +388,7 @@ export default function Dashboard({ auth, todos, categories, stats }) {
     const [showFilters, setShowFilters] = useState(false);
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+    const { data, setData, post, reset } = useForm({
         title: "",
         description: "",
         priority: "medium",
