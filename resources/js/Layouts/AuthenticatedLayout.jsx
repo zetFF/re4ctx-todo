@@ -42,7 +42,7 @@ export default function AuthenticatedLayout({ header, children }) {
             href: route("dashboard"),
             icon: LayoutDashboard,
             active: route().current("dashboard"),
-            category: "main"
+            category: "main",
         },
         {
             title: "Analytics",
@@ -50,8 +50,8 @@ export default function AuthenticatedLayout({ header, children }) {
             href: "/analytics",
             icon: PieChart,
             active: route().current("analytics"),
-            category: "main"
-        }
+            category: "main",
+        },
     ];
 
     const bottomLinks = [
@@ -61,7 +61,7 @@ export default function AuthenticatedLayout({ header, children }) {
             href: route("profile.edit"),
             icon: Settings,
             active: route().current("profile.edit"),
-            category: "account"
+            category: "account",
         },
     ];
 
@@ -77,15 +77,23 @@ export default function AuthenticatedLayout({ header, children }) {
                 )}
                 onClick={() => isMobile && setIsOpen(false)}
             >
-                <div className={cn(
-                    "flex items-center justify-center w-8 h-8 rounded-lg transition-colors",
-                    link.active ? "bg-primary/10 text-primary" : "text-gray-500 group-hover:text-primary"
-                )}>
+                <div
+                    className={cn(
+                        "flex items-center justify-center w-8 h-8 rounded-lg transition-colors",
+                        link.active
+                            ? "bg-primary/10 text-primary"
+                            : "text-gray-500 group-hover:text-primary"
+                    )}
+                >
                     <link.icon className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col">
                     <span className="text-sm font-medium">{link.title}</span>
-                    {link.description && <span className="text-xs text-gray-500">{link.description}</span>}
+                    {link.description && (
+                        <span className="text-xs text-gray-500">
+                            {link.description}
+                        </span>
+                    )}
                 </div>
             </Link>
         );
@@ -103,7 +111,11 @@ export default function AuthenticatedLayout({ header, children }) {
                 {/* Mobile Header */}
                 <div className="h-16 flex items-center justify-between px-4 border-b">
                     <div className="flex items-center">
-                    <img src="https://res.cloudinary.com/ddy7p8yrj/image/upload/v1742203820/wlltkoo3ipqb5lbbocdi.png" width={60} alt="" />
+                        <img
+                            src="https://res.cloudinary.com/ddy7p8yrj/image/upload/v1742203820/wlltkoo3ipqb5lbbocdi.png"
+                            width={60}
+                            alt=""
+                        />
                     </div>
                     <Button
                         variant="ghost"
@@ -182,8 +194,12 @@ export default function AuthenticatedLayout({ header, children }) {
                 <div className="flex items-center justify-between h-full">
                     {/* Logo and Brand */}
                     <div className="flex items-center gap-x-4">
-                       <img src="https://res.cloudinary.com/ddy7p8yrj/image/upload/v1742203820/wlltkoo3ipqb5lbbocdi.png" width={60} alt="" />
-                        
+                        <img
+                            src="https://res.cloudinary.com/ddy7p8yrj/image/upload/v1742203820/wlltkoo3ipqb5lbbocdi.png"
+                            width={60}
+                            alt=""
+                        />
+
                         {/* Desktop Navigation Links - Enhanced with better visual indicators */}
                         <nav className="hidden md:flex items-center h-full ml-8 space-x-1">
                             {mainLinks.map((link) => (
@@ -192,18 +208,23 @@ export default function AuthenticatedLayout({ header, children }) {
                                     href={link.href}
                                     className={cn(
                                         "flex items-center gap-x-2 px-4 py-2 h-full text-gray-600 hover:text-primary relative group",
-                                        link.active && "text-primary font-medium"
+                                        link.active &&
+                                            "text-primary font-medium"
                                     )}
                                 >
                                     <link.icon className="w-4 h-4" />
                                     <span>{link.title}</span>
-                                    
+
                                     {/* Active indicator with animation */}
-                                    <span className={cn(
-                                        "absolute bottom-0 left-0 w-full h-0.5 bg-primary transform transition-all duration-300",
-                                        link.active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-                                    )}></span>
-                                    
+                                    <span
+                                        className={cn(
+                                            "absolute bottom-0 left-0 w-full h-0.5 bg-primary transform transition-all duration-300",
+                                            link.active
+                                                ? "scale-x-100"
+                                                : "scale-x-0 group-hover:scale-x-100"
+                                        )}
+                                    ></span>
+
                                     {/* Tooltip with description */}
                                     <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                                         <div className="bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap mt-2">
@@ -212,15 +233,27 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </div>
                                 </Link>
                             ))}
+                            <div>
+                                <a
+                                    className="p-3 bg-blue-400 rounded-lg text-white font-semibold"
+                                    target="_blank"
+                                    href="htps://"
+                                >
+                                    4TODO V2
+                                </a>
+                            </div>
                         </nav>
                     </div>
-                    
+
                     {/* Right Side - User Menu */}
                     <div className="flex items-center gap-x-4">
                         {/* User Dropdown - Enhanced with better styling */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="flex items-center gap-2 px-2 hover:bg-gray-100 rounded-full">
+                                <Button
+                                    variant="ghost"
+                                    className="flex items-center gap-2 px-2 hover:bg-gray-100 rounded-full"
+                                >
                                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                                         <span className="text-sm font-medium">
                                             {user.name[0].toUpperCase()}
@@ -239,22 +272,29 @@ export default function AuthenticatedLayout({ header, children }) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
                                 <div className="px-2 py-1.5 md:hidden">
-                                    <p className="text-sm font-medium">{user.name}</p>
-                                    <p className="text-xs text-gray-500">{user.email}</p>
+                                    <p className="text-sm font-medium">
+                                        {user.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {user.email}
+                                    </p>
                                 </div>
                                 <DropdownMenuSeparator className="md:hidden" />
-                                
+
                                 {bottomLinks.map((link) => (
                                     <DropdownMenuItem key={link.title} asChild>
-                                        <Link href={link.href} className="flex items-center gap-x-2 cursor-pointer">
+                                        <Link
+                                            href={link.href}
+                                            className="flex items-center gap-x-2 cursor-pointer"
+                                        >
                                             <link.icon className="w-4 h-4" />
                                             <span>{link.title}</span>
                                         </Link>
                                     </DropdownMenuItem>
                                 ))}
-                                
+
                                 <DropdownMenuSeparator />
-                                
+
                                 <DropdownMenuItem asChild>
                                     <Link
                                         href={route("logout")}
@@ -268,7 +308,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        
+
                         {/* Mobile Menu Button */}
                         <Button
                             variant="ghost"
@@ -288,7 +328,7 @@ export default function AuthenticatedLayout({ header, children }) {
         <div className="min-h-screen bg-gray-50">
             {/* Top Navigation */}
             <TopNav />
-            
+
             {/* Mobile Navigation Drawer */}
             {isMobile && <MobileNav />}
 
